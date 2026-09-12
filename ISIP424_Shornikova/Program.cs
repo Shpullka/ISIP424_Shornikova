@@ -73,5 +73,95 @@ namespace ISIP424_Shornikova
                 }
             }
         }
+        static int GetInInput(string message, int min = 0)
+        {
+            while (true)
+            {
+                Console.Write(message);
+                if (int.TryParse(Console.ReadLine(), out int result) && result >= min)
+                {
+                    return result;
+                }
+                Console.WriteLine($"Ошибка: введите целое число не меньше {min}");
+            }
+        }
+
+        static decimal GetDecimalInput(string message, decimal min = 0)
+        {
+            while (true)
+            {
+                Console.Write(message);
+                if (decimal.TryParse(Console.ReadLine(), out decimal result) && result >= min)
+                {
+                    return result;
+                }
+                Console.WriteLine($"Ошибка: введите число не меньше {min}");
+            }
+        }
+
+        static string GetStringInput(string message)
+        {
+            while (true)
+            {
+                Console.Write(message);
+                string input = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(input))
+                {
+                    return input.Trim();
+                }
+                Console.WriteLine("Ошибка: строка не может быть пустой");
+
+            }
+        }
+
+        static ProductCategory GetCategoryInput()
+        {
+            Console.WriteLine("Выберите категорию: ");
+            var categories = Enum.GetValues(typeof(ProductCategory));
+            for (int i = 0; i < categories.Length; i++)
+            {
+                Console.WriteLine($"{i + 1}. {categories.GetValue(i)}");
+            }
+            while (true)
+            {
+                int choise = GetInInput("Ваш выбор: ", 1);
+                if (choise <= categories.Length)
+                {
+                    return (ProductCategory)categories.GetValue(choise - 1);
+                }
+                Console.WriteLine("Ошибка: выберите номер из списка");
+            }
+        }
+
+        static Product ProductById(int id)
+        {
+            return Manager.Products.FirstOrDefault(p => p.ProductID == id);
+        }
+
+        static void AddProduct()
+        {
+            Console.WriteLine("1. Добавление товаров");
+            string name = GetStringInput("Введите название: ");
+            decimal price = GetDecimalInput("Введите цену: ");
+            int quantity = GetInInput("Введите количество: ");
+            ProductCategory category = GetCategoryInput();
+
+            var newProduct = new Product
+            {
+                ProductID = Manager.Code++,
+                Name = name,
+                Price = price,
+                Quantity = quantity,
+                Category = category
+            };
+
+            Manager.Products.Add(newProduct);
+            Console.WriteLine($"Товар успешно добавлен! Присвоен код: {newProduct.ProductID}");
+        }
+
+        static void DeleteProduct()
+        {
+            Console.WriteLine("2. Удаление товара");
+        }
     }
 }
