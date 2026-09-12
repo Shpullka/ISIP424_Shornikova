@@ -186,6 +186,15 @@ namespace ISIP424_Shornikova
 
                     case "2":
                         string name = GetStringInput("Введите название товара: ");
+                        var products = Manager.Products.FirstOrDefault(p => string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase));
+                        if (products == null)
+                        {
+                            Console.WriteLine("Товар с таким названием не найден");
+                            return;
+                        }
+                        Manager.Products.Remove(products);
+                        Console.WriteLine($"Товар '{products.Name}' удален");
+                        break;
                 }
 
             }
