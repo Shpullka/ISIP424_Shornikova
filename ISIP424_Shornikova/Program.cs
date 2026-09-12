@@ -34,16 +34,17 @@ namespace ISIP424_Shornikova
         public class Manager
         {
             public static List<Product> Products = new List<Product>();
-            public static int Code = 1;
+            private static int Code = 1;
+            public static int NextCode() => Code++;
         }
 
         static void Main(string[] args)
         {
-            Manager.Products.Add(new Product { ProductID = Manager.Code++, Name = "Смартфон", Price = 50000, Quantity = 10, Category = ProductCategory.Электроника });
-            Manager.Products.Add(new Product { ProductID = Manager.Code++, Name = "Футболка", Price = 1500, Quantity = 50, Category = ProductCategory.Одежда });
-            Manager.Products.Add(new Product { ProductID = Manager.Code++, Name = "Микроволновка", Price = 8000, Quantity = 5, Category = ProductCategory.Бытовая_техника });
-            Manager.Products.Add(new Product { ProductID = Manager.Code++, Name = "Хлеб", Price = 40, Quantity = 100, Category = ProductCategory.Продукты });
-            Manager.Products.Add(new Product { ProductID = Manager.Code++, Name = "Наушники", Price = 3000, Quantity = 0, Category = ProductCategory.Электроника });
+            Manager.Products.Add(new Product { ProductID = Manager.NextCode(), Name = "Смартфон", Price = 50000, Quantity = 10, Category = ProductCategory.Электроника });
+            Manager.Products.Add(new Product { ProductID = Manager.NextCode(), Name = "Футболка", Price = 1500, Quantity = 50, Category = ProductCategory.Одежда });
+            Manager.Products.Add(new Product { ProductID = Manager.NextCode(), Name = "Микроволновка", Price = 8000, Quantity = 5, Category = ProductCategory.Бытовая_техника });
+            Manager.Products.Add(new Product { ProductID = Manager.NextCode(), Name = "Хлеб", Price = 40, Quantity = 100, Category = ProductCategory.Продукты });
+            Manager.Products.Add(new Product { ProductID = Manager.NextCode(), Name = "Наушники", Price = 3000, Quantity = 0, Category = ProductCategory.Электроника });
 
             bool exit = false;
             while (!exit)
@@ -148,7 +149,7 @@ namespace ISIP424_Shornikova
 
             var newProduct = new Product
             {
-                ProductID = Manager.Code++,
+                ProductID = Manager.NextCode(),
                 Name = name,
                 Price = price,
                 Quantity = quantity,
@@ -162,6 +163,32 @@ namespace ISIP424_Shornikova
         static void DeleteProduct()
         {
             Console.WriteLine("2. Удаление товара");
+            bool exit = false;
+            while (!exit)
+            {
+                Console.WriteLine("1. Через индивидуальный номер товара");
+                Console.WriteLine("2. Через название товара");
+                Console.WriteLine("Выберите способ удаления товара: ");
+                string choise = Console.ReadLine();
+
+                switch (choise) {
+                    case "1":
+                        int id = GetInInput("Введите номер товара: ");
+                        var product = ProductById(id);
+                        if (product == null)
+                        {
+                            Console.WriteLine("Товар с таким кодом не найден");
+                            return;
+                        }
+                        Manager.Products.Remove(product);
+                        Console.WriteLine($"Товар '{product.Name}' удален");
+                        break;
+
+                    case "2":
+                        string name = GetStringInput("Введите название товара: ");
+                }
+
+            }
         }
     }
 }
