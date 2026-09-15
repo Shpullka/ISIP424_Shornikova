@@ -31,9 +31,17 @@ namespace ISIP424_Shornikova
             }
         }
 
+        public class Sale
+        {
+            public Product ProductSold { get; set; }
+            public int Quantity { get; set; }
+            public decimal Price => ProductSold.Price * Quantity;
+        }
+
         public class Manager
         {
             public static List<Product> Products = new List<Product>();
+            public static Stack<Sale> History = new Stack<Sale>();
             private static int Code = 1;
             public static int NextCode() => Code++;
         }
@@ -56,6 +64,8 @@ namespace ISIP424_Shornikova
                 Console.WriteLine("4. Продать товар");
                 Console.WriteLine("5. Поиск товаров");
                 Console.WriteLine("6. Показать все товары");
+                Console.WriteLine("7. Отменить последнюю продажу");
+                Console.WriteLine("8. Отчет о продажах");
                 Console.WriteLine("0. Выход");
                 Console.Write("Выберите действие: ");
 
@@ -69,6 +79,8 @@ namespace ISIP424_Shornikova
                     case "4": SellProduct(); break;
                     case "5": SearchProducts(); break;
                     case "6": ShowAllProducts(); break;
+                    case "7": CancelLastSale(); break;
+                    case "8": ShowSales(); break;
                     case "0": exit = true; break;
                     default: Console.WriteLine("Неверная команда. Попробуйте снова."); break;
                 }
@@ -210,6 +222,7 @@ namespace ISIP424_Shornikova
                 return;
             }
             product.Quantity -= amount;
+            Manager.History.Push(new Sale { ProductSold = product, Quantity = amount });
             Console.WriteLine($"Продажа успешна. Остаток '{product.Name}': {product.Quantity}");
         }
 
@@ -219,7 +232,7 @@ namespace ISIP424_Shornikova
             Console.WriteLine("1. По коду");
             Console.WriteLine("2. По названию");
             Console.WriteLine("3. По категории");
-            Console.WriteLine("Выберите способ: ");
+            Console.Write("Выберите способ: ");
             string choise = Console.ReadLine();
             List<Product> result = new List<Product>();
             switch (choise)
@@ -269,10 +282,34 @@ namespace ISIP424_Shornikova
                 Console.WriteLine("Список товаров пуст");
                 return;
             }
-            Console.WriteLine($"\nВсего товаров: {Manager.Products.Count}");
+            Console.WriteLine($"Всего товаров: {Manager.Products.Count}\n");
             foreach (var product in Manager.Products)
             {
-                Console.WriteLine(Manager.Products);
+                Console.WriteLine(product);
+            }
+        }
+
+        static void CancelLastSale()
+        {
+            Console.WriteLine("\n7. Отмена последней продажи");
+            if (Manager.History.Count == 0)
+            {
+                Console.WriteLine("История продаж пуста. Нечего отменять");
+                return;
+            }
+            Sale lastSale = Manager.History.Pop();
+            lastSale.ProductSold.Quantity += lastSale.Quantity;
+            Console.WriteLine($"Отмена успешна! Товар '{lastSale.ProductSold.Name}' возвращен на склад в количестве '{lastSale.Quantity}' шт.");
+            Console.WriteLine($"Текущий остаток: {lastSale.ProductSold.Quantity}");
+        }
+
+        static void ShowSales()
+        {
+            Console.WriteLine("\n8. Отчет о продажах");
+            if (Manager.History.Count == 0)
+            {
+                Console.WriteLine("Продаж еще не было");
+                return;
             }
         }
     }
