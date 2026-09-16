@@ -311,6 +311,19 @@ namespace ISIP424_Shornikova
                 Console.WriteLine("Продаж еще не было");
                 return;
             }
+            decimal total = 0;
+            int item = 0;
+            foreach (var sale in Manager.History)
+            {
+                Console.WriteLine($"Товар: '{sale.ProductSold.Name}'");
+                Console.WriteLine($"Количество: '{sale.Quantity}' шт.");
+                Console.WriteLine($"Сумма продажи: '{sale.Price}'");
+
+                total += sale.Price;
+                item += sale.Quantity;
+            }
+            Console.WriteLine($"Всего продано штук: {item}");
+            Console.WriteLine($"Общая сумма продаж: {total}");
         }
     }
 }
