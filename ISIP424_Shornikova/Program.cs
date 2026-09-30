@@ -41,7 +41,7 @@ namespace ISIP424_Shornikova
                 switch (choise)
                 {
                     case "1": AnalizNewText(); break;
-                    //case "2": ShowHistory(); break;
+                    case "2": ShowHistory(); break;
                     case "3": exit = true; break;
                     default: Console.WriteLine("Неверная команда. Попробуйте снова"); break;
                 }
@@ -104,12 +104,66 @@ namespace ISIP424_Shornikova
             stats.SentenceCount = sentenceCount;
 
             string vowels = "аеёиоуыэюяaeiouy";
-            int viwelsCount = 0;
+            int vowelsCount = 0;
             int consonantCount = 0;
-            Dictionary<char, int> frequency = new Dictionary <char, int>();
+            Dictionary<char, int> frequency = new Dictionary<char, int>();
             for (int i = 0; i < input.Length; i++)
             {
                 char c = char.ToLower(input[i]);
+                if (char.IsLetter(c))
+                {
+                    if (vowels.IndexOf(c) >= 0)
+                    {
+                        vowelsCount++;
+                    }
+                    else
+                    {
+                        consonantCount++;
+                    }
+                    if (frequency.ContainsKey(c))
+                    {
+                        frequency[c]++;
+                    }
+                    else
+                    {
+                        frequency[c] = 1;
+                    }
+                }
+            }
+            stats.VowelCount = vowelsCount;
+            stats.ConsonantCount = consonantCount;
+            stats.LetterFrequency = frequency;
+            history.Add(stats);
+            PrintStatistics(stats);
+        }
+        static void PrintStatistics(TextStatistics stats)
+        {
+            Console.WriteLine("\nРезультаты анализы");
+            Console.WriteLine($"Количество слов: {stats.WordCount}");
+            Console.WriteLine($"Количество предложений: {stats.SentenceCount}");
+            Console.WriteLine($"Количество гласных букв: {stats.VowelCount}");
+            Console.WriteLine($"Количество согласных букв: {stats.ConsonantCount}");
+            Console.WriteLine($"Самое короткое слово: {stats.ShortWord}");
+            Console.WriteLine($"Самое длинное слово: {stats.LongWord}");
+            Console.WriteLine("\nЧастота встречаемости букв: ");
+            foreach (KeyValuePair<char, int> pair in stats.LetterFrequency)
+            {
+                Console.WriteLine($"'{pair.Key}' : {pair.Value}");
+            }
+        }
+        static void ShowHistory()
+        {
+            if (history.Count == 0)
+            {
+                Console.WriteLine("\nИстория пуста. Сначала проанализируйте хотя бы один текст");
+                return;
+            }
+            Console.WriteLine($"\nИстория анализов. Всего текстов {history.Count}");
+            for (int i = 0; i < history.Count; i++)
+            {
+                Console.WriteLine($"\nТекст {i + 1}");
+                Console.WriteLine($"Текст: {history[i].Text}");
+                PrintStatistics(history[i]);
             }
         }
     }
