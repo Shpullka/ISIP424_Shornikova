@@ -32,6 +32,7 @@ namespace ISIP424_Shornikova
     {
         private static int Code = 1;
         public static List<Books> Library = new List<Books>();
+        public static List<int> Basket = new List<int>();
 
         static void Main(string[] args)
         {
@@ -52,6 +53,10 @@ namespace ISIP424_Shornikova
                 Console.WriteLine("5. Показать самую дорогую и самую дешёвую книгу");
                 Console.WriteLine("6. Группировать книги по авторам");
                 Console.WriteLine("7. Показать все книги");
+                Console.WriteLine("8. Пакетный импорт книг");
+                Console.WriteLine("9. Добавить книгу в корзину");
+                Console.WriteLine("10. Показать корзину и итоговую стоимость");
+                Console.WriteLine("11. Очистить корзину");
                 Console.WriteLine("0. Выход");
                 Console.Write("Выберите действие: ");
 
@@ -64,9 +69,13 @@ namespace ISIP424_Shornikova
                         case "2": RemoveBook(); break;
                         case "3": SearchBooks(); break;
                         case "4": SortBooks(); break;
-                        //case "5": ShowMinMaxPrice(); break;
-                        //case "6": GroupByAuthor(); break;
-                        //case "7": ShowAllBooks(); break;
+                        case "5": ShowMinMaxPrice(); break;
+                        case "6": GroupByAuthor(); break;
+                        case "7": ShowAllBooks(); break;
+                        case "8": BatchImport(); break;
+                        case "9": AddToCart(); break;
+                        case "10": ShowCart(); break;
+                        case "11": ClearCart(); break;
                         case "0": exit = true; break;
                         default: Console.WriteLine("Неверная команда. Попробуйте снова"); break;
                     }
@@ -132,6 +141,10 @@ namespace ISIP424_Shornikova
                 Console.WriteLine($"Ошибка: введите число от 1 до {categories.Length}");
             }
         }
+        private static bool TryParseGenre(string input, out BooksGenres genre)
+        {
+            return Enum.TryParse(input.Trim(), true, out genre);
+        }
         private static void AddBook()
         {
             Console.WriteLine("\n1. Добавление новой книги");
@@ -167,6 +180,7 @@ namespace ISIP424_Shornikova
             if (BookRemove != null)
             {
                 Library.Remove(BookRemove);
+                Basket.Remove(id);
                 Console.WriteLine($"Книга '{BookRemove.NameBook}' удалена");
             }
             else
@@ -253,6 +267,166 @@ namespace ISIP424_Shornikova
                 {
                     Console.WriteLine(book);
                 }
+            }
+        }
+        private static void ShowMinMaxPrice()
+        {
+            Console.WriteLine("\n5. Самая дорогая и дешёвая книга");
+            if (Library.Count == 0)
+            {
+                Console.WriteLine("Библиотека пуста");
+                return;
+            }
+            decimal MaxPrice = Library.Max(p => p.PriceBook);
+            decimal MinPrice = Library.Min(p => p.PriceBook);
+            var maxPriceBook = Library.Where(p => p.PriceBook == MaxPrice).ToList();
+            var minPriceBook = Library.Where(p => p.PriceBook == MinPrice).ToList();
+            Console.WriteLine($"Самая дорогая книга: {maxPriceBook}");
+            Console.WriteLine($"\nСамая дешёвая книга: {minPriceBook}");
+        }
+        private static void GroupByAuthor()
+        {
+            Console.WriteLine("\n6. Группировка по авторам");
+            if (Library.Count == 0)
+            {
+                Console.WriteLine("Библиотека пуста");
+                return;
+            }
+            var grouped = Library.GroupBy(p => p.AuthorBook);
+            foreach (var group in grouped)
+            {
+                Console.WriteLine($"Автор: {group.Key} (Книг: {group.Count()})");
+                foreach (var book in group)
+                {
+                    Console.WriteLine($"  - {book.NameBook} ({book.PublicationBook})");
+                }
+            }
+        }
+        private static void BatchImport()
+        {
+            Console.WriteLine("\n8. Пакетный импорт книг");
+            Console.WriteLine("Формат строки: Название;Автор;Жанр;Год;Цена");
+            Console.WriteLine("Доступные жанры: Фантастика, Научная_фантастика, Детективы, Романы, Исторический");
+            int count = GetIntInput("Введите количество книг для добавления");
+            for (int i = 0; i < count; i++)
+            {
+                Console.WriteLine($"\nКнига {i} из {count}:");
+                Console.Write("");
+                string line = Console.ReadLine();
+                string[] parts = line.Split(';');
+                if (parts.Length != 5)
+                {
+                    Console.WriteLine("Ошибка: ожидается 5 полей");
+                    return;
+                }
+                for (int j = 0; j < parts.Length; j++)
+                {
+                    parts[j] = parts[j].Trim();
+                }
+
+                if (string.IsNullOrWhiteSpace(parts[0]))
+                {
+                    Console.WriteLine("Ошибка: название пустое");
+                    return;
+                }
+                if (string.IsNullOrWhiteSpace(parts[1]))
+                {
+                    Console.WriteLine("Ошибка: автор пустой");
+                    return;
+                }
+                if (!TryParseGenre(parts[2], out BooksGenres genre))
+                {
+                    Console.WriteLine($"Ошибка: неизвестный жанр '{parts[2]}'");
+                    return;
+                }
+                if (!int.TryParse(parts[3], out int year) || year <= 0)
+                {
+                    Console.WriteLine($"Ошибка: неверный год '{parts[3]}'");
+                    return;
+                }
+                if (!decimal.TryParse(parts[4], out decimal price) || price < 0)
+                {
+                    Console.WriteLine($"Ошибка: неверная цена '{parts[4]}'");
+                    return;
+                }
+
+                var newBook = new Books
+                {
+                    BookID = Code++,
+                    NameBook = parts[0],
+                    AuthorBook = parts[1],
+                    Generes = genre,
+                    PublicationBook = year,
+                    PriceBook = price
+                };
+                Library.Add(newBook);
+                Console.WriteLine($"Книга успешно добавлена! Присвоен код: {newBook.BookID}");
+            }
+            Console.WriteLine($"Импорт завершён");
+        }
+        private static void AddToCart()
+        {
+            Console.WriteLine("\n9. Добавление книги в корзину");
+            if (Library.Count == 0)
+            {
+                Console.WriteLine("Библиотека пуста");
+                return;
+            }
+            int id = GetIntInput("Введите ID книги: ");
+            var book = Library.FirstOrDefault(p => p.BookID == id);
+            if (book == null)
+            {
+                Console.WriteLine("Книга с таким ID не найдена");
+                return;
+            }
+            if (Basket.Contains(id))
+            {
+                Console.WriteLine($"Книга '{book.NameBook}' уже в корзине");
+                return;
+            }
+            Basket.Add(id);
+            Console.WriteLine($"Книга '{book.NameBook}' добавлена в корзину");
+        }
+        private static void ShowCart()
+        {
+            Console.WriteLine("\n10. Корзина");
+            if (Basket.Count == 0)
+            {
+                Console.WriteLine("Корзина пуста");
+                return;
+            }
+            var BasketBooks = Library.Where(p => Basket.Contains(p.BookID)).ToList();
+            Console.WriteLine("Книги в корзине:");
+            foreach (var book in BasketBooks)
+            {
+                Console.WriteLine($"  - '{book.NameBook}' ({book.AuthorBook}) — {book.PriceBook}");
+            }
+
+            decimal total = BasketBooks.Sum(p => p.PriceBook);
+            Console.WriteLine($"\nИтоговая стоимость: {total}");
+        }
+        private static void ClearCart()
+        {
+            Console.WriteLine("\n11. Очистка корзины");
+            if (Basket.Count == 0)
+            {
+                Console.WriteLine("Корзина уже пуста");
+                return;
+            }
+            Basket.Clear();
+            Console.WriteLine("Корзина очищена");
+        }
+        private static void ShowAllBooks()
+        {
+            Console.WriteLine("\n7. Все книги в библиотеке");
+            if (Library.Count == 0)
+            {
+                Console.WriteLine("Библиотека пуста");
+                return;
+            }
+            foreach (var book in Library)
+            {
+                Console.WriteLine(book);
             }
         }
     }
