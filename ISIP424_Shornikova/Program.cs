@@ -78,7 +78,7 @@ namespace ISIP424_Shornikova
         }
         public override string GetInfo()
         {
-            return $"Студент: {Name}, Возраст: {Age}, Контакты: {Contact}, Количество курсов: {RegisterCourse.Count}";
+            return $"Студент: {Name}\n" + $"Возраст: {Age}\n" + $"Контакты: {Contact}\n" + $"Количество курсов: {RegisterCourse.Count}\n";
         }
     }
 
@@ -95,46 +95,98 @@ namespace ISIP424_Shornikova
             if (!TaughtCourse.Contains(course))
             {
                 TaughtCourse.Add(course);
-                course.AddTeacher(this);
+                course.SetTeacher(this);
             }
         }
         public override string GetInfo()
         {
-            return $"Преподаватель: {Name}, Возраст: {Age}, Контактная информация: {Contact}, Ведёт курсов: {TaughtCourse.Count}";
+            return $"Преподаватель: {Name}\n" + $"Возраст: {Age}\n" + $"Контактная информация: {Contact}\n" + $"Ведёт курсов: {TaughtCourse.Count}\n";
         }
     }
 
     public class Course
     {
-        private string title;
-        private int credits;
+        private string _title;
+        private int _credits;
 
         public string Title
         {
-            get => title;
+            get => _title;
             set
             {
-                if (string.IsNullOrWhiteSpace(title))
+                if (string.IsNullOrWhiteSpace(value))
                 {
                     throw new ArgumentException("Название курса не может быть пустым");
                 }
-                title = value;
+                _title = value;
             }
         }
 
         public int Credits
         {
-            get => credits;
+            get => _credits;
             set
             {
-                if (credits <= 0)
+                if (value <= 0)
                 {
                     throw new ArgumentException("Количество кредитов должно быть положительным");
                 }
-                credits = value;
+                _credits = value;
             }
         }
 
+        public List<Student> Students { get; private set; } = new List<Student>();
+        public Teacher Instructor { get; private set; }
+
+        public Course(string title, int credits)
+        {
+            Title = title;
+            Credits = credits;
+        }
+
+        public void SetTeacher(Teacher teacher)
+        {
+            Instructor = teacher;
+        }
+
+        public void AddStudent(Student student)
+        {
+            if (!Students.Contains(student))
+            {
+                Students.Add(student);
+            }
+        }
+
+        public string GetCourseDetails()
+        {
+            string TeacherName = Instructor != null ? Instructor.Name : "Не назначен";
+            return $"Курс: {Title}\n" + $"Кредитов: {Credits}\n" + $"Преподаватель: {TeacherName}\n" + $"Студентов: {Students.Count}\n";
+        }
+    }
+
+    public class University
+    {
+        private List<Student> _students = new List<Student>();
+        private List<Teacher> _teacher = new List<Teacher>();
+        private List<Course> _course = new List<Course>();
+
+        public void AddStudent(Student student) => _students.Add(student);
+        public void AddTeacher(Teacher teacher) => _teacher.Add(teacher);
+        public void AddCourse(Course course) => _course.Add(course);
+
+        public IEnumerable<Student> GetAllStudents() => _students;
+        public IEnumerable<Teacher> GetAllTeacher() => _teacher;
+        public IEnumerable<Course> GetAllCourse() => _course;
+
+        public Student FindStudentByName(string name) => _students.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        public Teacher FindTeacherByName(string name) => _teacher.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        public Course FindCourseByTitle(string title) => _course.FirstOrDefault(p => p.Title.Equals(title, StringComparison.OrdinalIgnoreCase));
+
+        public IEnumerable<Student> GetStudentsByCourse(string CourseTitle)
+        {
+            var course = FindCourseByTitle(CourseTitle);
+            return course?.Students ?? Enumerable.Empty<Student>();
+        }
 
     }
     internal class Program
