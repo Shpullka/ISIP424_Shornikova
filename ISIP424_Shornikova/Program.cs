@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace ISIP424_Shornikova
 {
@@ -178,21 +179,74 @@ namespace ISIP424_Shornikova
         public IEnumerable<Teacher> GetAllTeacher() => _teacher;
         public IEnumerable<Course> GetAllCourse() => _course;
 
-        public Student FindStudentByName(string name) => _students.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-        public Teacher FindTeacherByName(string name) => _teacher.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-        public Course FindCourseByTitle(string title) => _course.FirstOrDefault(p => p.Title.Equals(title, StringComparison.OrdinalIgnoreCase));
+        public Student FindStudentByName(string name) => _students.FirstOrDefault(p => p.Name.ToLower() == name.ToLower());
+        public Teacher FindTeacherByName(string name) => _teacher.FirstOrDefault(p => p.Name.ToLower() == name.ToLower());
+        public Course FindCourseByTitle(string title) => _course.FirstOrDefault(p => p.Title.ToLower() == title.ToLower());
 
-        public IEnumerable<Student> GetStudentsByCourse(string CourseTitle)
+        public List<Student> GetStudentsByCourse(string CourseTitle)
         {
             var course = FindCourseByTitle(CourseTitle);
-            return course?.Students ?? Enumerable.Empty<Student>();
+            if (course == null)
+            {
+                Console.WriteLine($"Курса '{CourseTitle}' не существует");
+            }
+            return course.Students;
         }
-
     }
+
     internal class Program
     {
+        private static University _university = new University();
         static void Main(string[] args)
         {
+            bool exit = false;
+            while (!exit)
+            {
+                Console.WriteLine("\nСистема управления университетом");
+                Console.WriteLine("1. Добавить студента");
+                Console.WriteLine("2. Добавить преподавателя");
+                Console.WriteLine("3. Создать курс");
+                Console.WriteLine("4. Записать студента на курс");
+                Console.WriteLine("5. Назначить преподавателя на курс");
+                Console.WriteLine("6. Просмотреть всю информацию");
+                Console.WriteLine("0. Выход");
+                Console.Write("Выберите действие: ");
+                string choice = Console.ReadLine();
+
+                try
+                {
+                    switch (choice)
+                    {
+                        case "1": AddStudent(); break;
+                        //case "2": AddTeacher(); break;
+                        //case "3": AddCourse(); break;
+                        //case "4": EnrollStudent(); break;
+                        //case "5": AssignTeacher(); break;
+                        //case "6": AllInformation(); break;
+                        //case "0": exit = true; break;
+                        default: Console.WriteLine("Неверная команда. Попробуйте снова"); break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Произошла ошибка: {ex.Message}");
+                }
+            }
+        }
+        static void AddStudent()
+        {
+            Console.WriteLine("\n1. Добавление нового студента");
+            Console.Write("Введите имя студента: ");
+            string name = Console.ReadLine();
+            Console.Write("Введите возраст: ");
+            int age = int.Parse(Console.ReadLine());
+            Console.Write("Введите контакты: ");
+            string contact = Console.ReadLine();
+
+            var student = new Student(name, age, contact);
+            _university.AddStudent(student);
+            Console.WriteLine("Студент успешно добавлен!");
+
         }
     }
 }
