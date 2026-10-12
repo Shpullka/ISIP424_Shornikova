@@ -204,11 +204,17 @@ namespace ISIP424_Shornikova
             {
                 Console.WriteLine("\nСистема управления университетом");
                 Console.WriteLine("1. Добавить студента");
-                Console.WriteLine("2. Добавить преподавателя");
-                Console.WriteLine("3. Создать курс");
-                Console.WriteLine("4. Записать студента на курс");
-                Console.WriteLine("5. Назначить преподавателя на курс");
-                Console.WriteLine("6. Просмотреть всю информацию");
+                Console.WriteLine("2. Записать студента на курс");
+                Console.WriteLine("3. Список всех студентов");
+                Console.WriteLine("4. Информация о конкретном студенте");
+                Console.WriteLine("5. Добавить преподавателя");
+                Console.WriteLine("6. Назначить преподавателя на курс");
+                Console.WriteLine("7. Список всех преподавателей");
+                Console.WriteLine("8. Информация о конкретном преподавателе");
+                Console.WriteLine("9. Создать курс");
+                Console.WriteLine("10. Список всех курсов");
+                Console.WriteLine("11. Информация о конкретном курсе");
+                Console.WriteLine("12. Просмотреть всю информацию");
                 Console.WriteLine("0. Выход");
                 Console.Write("Выберите действие: ");
                 string choice = Console.ReadLine();
@@ -218,11 +224,17 @@ namespace ISIP424_Shornikova
                     switch (choice)
                     {
                         case "1": AddStudent(); break;
-                        case "2": AddTeacher(); break;
-                        case "3": AddCourse(); break;
-                        case "4": EnrollStudent(); break;
-                        case "5": AssignTeacher(); break;
-                        case "6": AllInformation(); break;
+                        case "2": EnrollStudent(); break;
+                        case "3": ShowAllStudents(); break;
+                        case "4": ShowStudentDetails(); break;
+                        case "5": AddTeacher(); break;
+                        case "6": AssignTeacher(); break;
+                        case "7": ShowAllTeachers(); break;
+                        case "8": ShowTeacherDetails(); break;
+                        case "9": AddCourse(); break;
+                        case "10": ShowAllCourses(); break;
+                        case "11": ShowCourseDetails(); break;
+                        case "12": AllInformation(); break;
                         case "0": exit = true; break;
                         default: Console.WriteLine("Неверная команда. Попробуйте снова"); break;
                     }
@@ -248,35 +260,9 @@ namespace ISIP424_Shornikova
             Console.WriteLine("Студент успешно добавлен!");
 
         }
-        static void AddTeacher()
-        {
-            Console.WriteLine("\n2. Добавление нового преподавателя");
-            Console.Write("Введите имя преподавателя: ");
-            string name = Console.ReadLine();
-            Console.Write("Введите возраст: ");
-            int age = int.Parse(Console.ReadLine());
-            Console.Write("Введите контакты: ");
-            string contact = Console.ReadLine();
-
-            var teacher = new Teacher(name, age, contact);
-            _university.AddTeacher(teacher);
-            Console.WriteLine("Преподаватель успешно добавлен!");
-        }
-        static void AddCourse()
-        {
-            Console.WriteLine("\n3. Создание нового курса");
-            Console.Write("Введите название курса: ");
-            string title = Console.ReadLine();
-            Console.Write("Введите количество кредитов: ");
-            int credits = int.Parse(Console.ReadLine());
-
-            var course = new Course(title, credits);
-            _university.AddCourse(course);
-            Console.WriteLine("Курс успешно создан!");
-        }
         static void EnrollStudent()
         {
-            Console.WriteLine("\n4. Запись студента на курс");
+            Console.WriteLine("\n2. Запись студента на курс");
             Console.Write("Введите имя студента: ");
             string sName = Console.ReadLine();
             var student = _university.FindStudentByName(sName);
@@ -296,9 +282,62 @@ namespace ISIP424_Shornikova
             student.SingInCourse(course);
             Console.WriteLine($"Студент '{student.Name}' записан на курс '{course.Title}'");
         }
+        static void ShowAllStudents()
+        {
+            Console.WriteLine("\n3. Список всех студентов в системе");
+            var students = _university.GetAllStudents().ToList();
+
+            if (students.Count == 0)
+            {
+                Console.WriteLine("В системе пока нет студентов");
+            }
+            foreach (var s in students)
+            {
+                Console.WriteLine(s.GetInfo());
+            }
+        }
+        static void ShowStudentDetails()
+        {
+            Console.WriteLine("\n4. Информация о конкретном студенте с его курсами");
+            Console.Write("Введите имя студента: ");
+            string name = Console.ReadLine();
+
+            var student = _university.FindStudentByName(name);
+            if (student == null)
+            {
+                throw new Exception($"Студент с именем '{name}' не найден");
+            }
+            Console.WriteLine("\nИнформация о студенте");
+            Console.WriteLine(student.GetInfo());
+
+            Console.WriteLine("\nКурсы, на которые записан студент:");
+            var courses = student.RegisterCourse;
+            if (courses.Count == 0)
+            {
+                Console.WriteLine("Студент пока не записан ни на один курс");
+            }
+            foreach (var c in courses)
+            {
+                Console.WriteLine($"- '{c.Title}' ({c.Credits} кредитов)\n" + $"Преподаватель: {(c.Instructor?.Name ?? "Не назначен")}\n");
+            }
+        }
+        static void AddTeacher()
+        {
+            Console.WriteLine("\n5. Добавление нового преподавателя");
+            Console.Write("Введите имя преподавателя: ");
+            string name = Console.ReadLine();
+            Console.Write("Введите возраст: ");
+            int age = int.Parse(Console.ReadLine());
+            Console.Write("Введите контакты: ");
+            string contact = Console.ReadLine();
+
+            var teacher = new Teacher(name, age, contact);
+            _university.AddTeacher(teacher);
+            Console.WriteLine("Преподаватель успешно добавлен!");
+        }
         static void AssignTeacher()
         {
-            Console.WriteLine("\n5. Запись преподавателя на курс");
+            Console.WriteLine("\n6. Запись преподавателя на курс");
             Console.Write("Введите имя преподавателя: ");
             string tName = Console.ReadLine();
             var teacher = _university.FindTeacherByName(tName);
@@ -318,9 +357,96 @@ namespace ISIP424_Shornikova
             teacher.AssignToCourse(course);
             Console.WriteLine($"Преподаватель '{teacher.Name}' назначен на курс '{course.Title}'");
         }
+        static void ShowAllTeachers()
+        {
+            Console.WriteLine("\n7. Список всех преподавателей в системе");
+            var teachers = _university.GetAllTeacher().ToList();
+
+            if (teachers.Count == 0)
+            {
+                Console.WriteLine("В системе пока нет преподавателей");
+            }
+            foreach (var t in teachers)
+            {
+                Console.WriteLine(t.GetInfo());
+            }
+        }
+        static void ShowTeacherDetails()
+        {
+            Console.WriteLine("\n8. Информация о конкретном преподавателе с его курсами");
+            Console.Write("Введите имя преподавателя: ");
+            string name = Console.ReadLine();
+            var teacher = _university.FindTeacherByName(name);
+            if (teacher == null)
+            {
+                throw new Exception($"Преподаватель с именем '{name}' не найден");
+            }
+            Console.WriteLine("\nИнформация о преподавателе");
+            Console.WriteLine(teacher.GetInfo());
+
+            Console.WriteLine("\nКурсы, которые ведет преподаватель:");
+            var courses = teacher.TaughtCourse;
+            if (courses.Count == 0)
+            {
+                Console.WriteLine("Преподаватель пока не ведет ни один курс");
+            }
+            foreach (var c in courses)
+            {
+                Console.WriteLine($"- '{c.Title}' ({c.Credits} кредитов)\n" + $"Студентов на курсе: {c.Students.Count}\n");
+            }
+        }
+        static void AddCourse()
+        {
+            Console.WriteLine("\n9. Создание нового курса");
+            Console.Write("Введите название курса: ");
+            string title = Console.ReadLine();
+            Console.Write("Введите количество кредитов: ");
+            int credits = int.Parse(Console.ReadLine());
+
+            var course = new Course(title, credits);
+            _university.AddCourse(course);
+            Console.WriteLine("Курс успешно создан!");
+        }  
+        static void ShowAllCourses()
+        {
+            Console.WriteLine("\n10. Список всех курсов в системе");
+            var courses = _university.GetAllCourse().ToList();
+            if (courses.Count == 0)
+            {
+                Console.WriteLine("В системе пока нет курсов");
+            }
+            foreach (var c in courses)
+            {
+                Console.WriteLine(c.GetCourseDetails());
+            }
+        }
+        static void ShowCourseDetails()
+        {
+            Console.WriteLine("\n11. Информация о конкретном курсе");
+            Console.Write("Введите название курса: ");
+            string title = Console.ReadLine();
+            var course = _university.FindCourseByTitle(title);
+            if (course == null)
+            {
+                throw new Exception($"Курс с названием '{title}' не найден");
+            }
+            Console.WriteLine("\nИнформация о курсе");
+            Console.WriteLine(course.GetCourseDetails());
+
+            Console.WriteLine("\nСтуденты, записанные на курс:");
+            var students = course.Students;
+            if (students.Count == 0)
+            {
+                Console.WriteLine("На курс пока никто не записан");
+            }
+            foreach (var s in students)
+            {
+                Console.WriteLine($"- '{s.Name}' (Возраст: {s.Age})");
+            }
+        }
         static void AllInformation()
         {
-            Console.WriteLine("\n6. Вывод всей информации");
+            Console.WriteLine("\n12. Вывод всей информации");
             Console.WriteLine("\nВсе студенты");
             foreach (var student in _university.GetAllStudents())
             {
