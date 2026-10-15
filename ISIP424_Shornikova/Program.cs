@@ -98,6 +98,7 @@ namespace ISIP424_Shornikova
         public Weapon EquippedWeapon { get; set; }
         public Armor EquippedArmor { get; set; }
         public bool IsFrozen { get; set; } = false;
+        public bool IsDefending { get; set; } = false;
 
         public Player(string name, int health, int attack, int defense) : base(name, health, attack, defense) { }
 
@@ -272,10 +273,46 @@ namespace ISIP424_Shornikova
                 if (_player.IsFrozen)
                 {
                     Console.WriteLine("Вы заморожены и пропускаете ход!");
-                    IsFrozen = false;
+                    _player.IsFrozen = false;
                 }
-
+                else
+                {
+                    Console.WriteLine("Ваш ход. Выберите действие: ");
+                    Console.WriteLine("1. Атаковать");
+                    Console.WriteLine("2. Защититься");
+                    Console.Write("Ваш выбор: ");
+                    string input = Console.ReadLine();
+                    _player.IsDefending = false;
+                    switch (input)
+                    {
+                        case "1": PlayerAttack(enemy); break;
+                        case "2": PlayerDefend(); break;
+                        default: Console.WriteLine("Неверный ввод. Вы пропускаете ход"); break;
+                    }
+                }
             }
+            if (_player.IsAlive)
+            {
+                Console.WriteLine($"\nВы победили {enemy.Name}!");
+            }
+    }
+
+    private void PlayerAttack(Enemy enemy)
+    {
+            int damage = _player.GetTotalAttack;
+            int FinalDamage = damage - enemy.Defense;       
+            if (FinalDamage < 1)
+            {
+                FinalDamage = 1;
+            }
+            enemy.TakeDamage(FinalDamage);
+            Console.WriteLine($"Вы нанесли {FinalDamage} урона. У {enemy.Name} осталось {enemy.Health} HP");
+    }
+
+    private void PlayerDefend()
+    {
+            Console.WriteLine("Вы встали в защитную стойку");
+            _player.IsDefending = true;
     }
     internal class Program
     {
