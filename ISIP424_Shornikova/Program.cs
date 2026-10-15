@@ -221,6 +221,62 @@ namespace ISIP424_Shornikova
             FreezeChance = 0.15;
         }
     }
+
+    private void OpenChest()
+    {
+            Console.WriteLine("Вы нашли сундук!");
+            var item = _lootTable[_random.Next(_lootTable.Count)];
+            if (item is Potion potion)
+            {
+                _player.Health = _player.MaxHealth;
+                Console.WriteLine($"Вы выпили {potion.Name}. {potion.GetDescription()} (HP: {_player.Health})");
+            }
+            else
+            {
+                Console.WriteLine($"В сундуке лежит {item.GetDescription()}");
+                Console.WriteLine("Ваша текущая экипировка: ");
+                string WeaponDesc = "Пусто";
+                if (_player.EquippedWeapon != null)
+                {
+                    WeaponDesc = _player.EquippedWeapon.GetDescription();
+                }
+                string ArmorDesc = "Пусто";
+                if (_player.EquippedArmor != null)
+                {
+                    ArmorDesc = _player.EquippedArmor.GetDescription();
+                }
+                Console.WriteLine($"Ваше оружие: {WeaponDesc})");
+                Console.WriteLine($"Ваши доспехи: {ArmorDesc}");
+                Console.Write("Взять предмет? (Да/Нет): ");
+                string choice = Console.ReadLine();
+                if (choice != null) 
+                {
+                    choice = choice.ToLower();
+                }
+                if (choice == "да")
+                {
+                    _player.EquipItem(item);
+                }
+                else
+                {
+                    Console.WriteLine("Вы выбросили предмет");
+                }
+            }
+    }
+
+    private void Fight(Enemy enemy)
+    {
+            while (enemy.IsAlive && _player.IsAlive)
+            {
+                Console.WriteLine($"Бой с {enemy.Name}"); 
+                if (_player.IsFrozen)
+                {
+                    Console.WriteLine("Вы заморожены и пропускаете ход!");
+                    IsFrozen = false;
+                }
+
+            }
+    }
     internal class Program
     {
         static void Main(string[] args)
