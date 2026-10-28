@@ -9,14 +9,38 @@ namespace ISIP424_Shornikova
     public static class Core
     {
         public static Shpulka_424Entities Context = new Shpulka_424Entities();
+
+        public static User CurrentUser = null; 
         public static string RegisterUser(string nickname, string password1, string password2)
         {
             if (password1 != password2)
             {
                 return "Пароли не совпадают!";
             }
-            
+            if (Context.User.Any(p => p.Nickname == nickname))
+            {
+                return "Пользователь с таким никнеймом уже сущкствует!";
+            }
 
+            User newUser = new User
+            {
+                Nickname = nickname, 
+                PasswordHash = password1
+            };
+            Context.User.Add(newUser);
+            Context.SaveChanges();
+            return "Успешно";
+        }
+
+        public static bool Login(string nickname, string password)
+        {
+            CurrentUser = Context.User.FirstOrDefault(p => p.Nickname == nickname && p.PasswordHash == password);
+            return CurrentUser != null;
+        }
+
+        public static void Logout()
+        {
+            CurrentUser = null;
         }
 
         public static List<Product> GetProducts()
@@ -26,11 +50,16 @@ namespace ISIP424_Shornikova
 
         public static string AddToCart(int userID, int productID)
         {
-            var product = Context.Product.Find(productID);
+            if (CurrentUser == null)
+            {
+                return "Необходимо войти в аккаунт";
+            }
+            var product = Context.Product.FirstOrDefault(p => p.ProductID == productID);
             if (product == null || !product.IsAvailable)
             {
                 return "Товар не найден или отсутствует в наличии";
             }
+
             Context.CartItem.Add(new CartItem
             {
                 UserID = userID,
@@ -40,14 +69,18 @@ namespace ISIP424_Shornikova
             return "Товар добавлен в корзину!";
         }
 
-        public static List<CartItem> GetCart(int userID)
+        public static List<CartItem> GetCartItems()
         {
-            return Context.CartItem.Include(p => p.Product).Where(p => p.UserID == userID).ToList();
+            if (CurrentUser == null)
+            {
+                return new List<CartItem>();
+            }
+            return Context.CartItem.Where(p => p.UserID == CurrentUser.UserID).ToList();
         }
 
-        public static void RemoveFromCart(int cartItemID)
+        public static void RemoveFromCart(int productID)
         {
-            var item = Context.CartItem.Find(cartItemID);
+            var item = Context.CartItem.FirstOrDefault(p => p.UserID == CurrentUser.UserID && p.ProductID == productID);
             if (item != null)
             {
                 Context.CartItem.Remove(item);
@@ -60,32 +93,86 @@ namespace ISIP424_Shornikova
             return Context.PickupPoint.ToList();
         }
 
-        public static string CreateOrder(int userID, int pickupPointID, List<CartItem> itemToBuy)
+        public static string CheckoutSelected(List<int> selectedProductsID, int pickupPointID)
         {
-            if (!Context.PickupPoint.Any(p => p.PickupPointID == pickupPointID))
+            var cartItems = GetCartItems();
+            if (cartItems.Count == 0)
             {
-                return "ПВЗ не найден";
+                return "Корзина пуста";
             }
-            var order = new Order
+            var itemsToBuy = Context.CartItem.Where(p => p.UserID == CurrentUser.UserID && selectedProductsID.Contains(p.ProductID)).ToList();
+            if (itemsToBuy.Count == 0)
             {
-                UserID = userID,
+                return "Вы не выбрали ни одного товара из корзины";
+            }
+
+            Order newOrder = new Order
+            {
+                UserID = CurrentUser.UserID,
                 PickupPointID = pickupPointID,
                 CreatedAt = DateTime.Now,
                 IsCompleted = false
             };
-            Context.Order.Add(order);
+            Context.Order.Add(newOrder);
             Context.SaveChanges();
 
-            foreach (var item in itemToBuy)
+            foreach (var item in itemsToBuy)
             {
                 Context.OrderProduct.Add(new OrderProduct
                 {
-                    OrderID = order.OrderID,
+                    OrderID = newOrder.OrderID,
                     ProductID = item.ProductID
                 });
             }
+            Context.CartItem.RemoveRange(itemsToBuy);
+            Context.SaveChanges();
+            return $"Заказ успешно оформлен! Куплено товаров: {itemsToBuy.Count}";
+        }
 
-            var cartItem = Context.CartItem.FirstOrDefault(p => p.CartItemID ==  )
+        public static List<Order> GetOrderHistory()
+        {
+            if (CurrentUser == null)
+            {
+                return new List<Order>();
+            }
+            return Context.Order.Where(p => p.OrderID == CurrentUser.UserID).OrderByDescending(p => p.CreatedAt).ToList();
+        }
+
+        public static string GetProductName(int productID)
+        {
+            var product = Context.Product.FirstOrDefault(p => p.ProductID == productID);
+            if (product != null)
+            {
+                return product.Name;
+            }
+            return "Неизвестный товар";
+        }
+
+        public static string GetPickupPointAddress(int pickupPointID)
+        {
+            var pickupPoint = Context.PickupPoint.FirstOrDefault(p => p.PickupPointID == pickupPointID);
+            if (pickupPoint != null)
+            {
+                return pickupPoint.Address;
+            }
+            return "Неизвестный адрес";
+        }
+
+        public static List<string> GetProductInOrder(int orderID)
+        {
+            List<string> productsName = new List<string>();
+            foreach (var product in Context.OrderProduct)
+            {
+                if (product.OrderID == orderID)
+                {
+                    var products = Context.Product.FirstOrDefault(p => p.ProductID == product.ProductID);
+                    if (products != null)
+                    {
+                        productsName.Add(products.Name);
+                    }
+                }
+            }
+            return productsName;
         }
     }
 }
