@@ -19,7 +19,7 @@ namespace ISIP424_Shornikova
             }
             if (Context.User.Any(p => p.Nickname == nickname))
             {
-                return "Пользователь с таким никнеймом уже сущкствует!";
+                return "Пользователь с таким никнеймом уже существует!";
             }
 
             User newUser = new User
@@ -41,6 +41,7 @@ namespace ISIP424_Shornikova
         public static void Logout()
         {
             CurrentUser = null;
+            Console.WriteLine("Вы вышли из аккаунта");
         }
 
         public static List<Product> GetProducts()
@@ -78,14 +79,18 @@ namespace ISIP424_Shornikova
             return Context.CartItem.Where(p => p.UserID == CurrentUser.UserID).ToList();
         }
 
-        public static void RemoveFromCart(int productID)
+        public static bool RemoveFromCart(int productID)
         {
             var item = Context.CartItem.FirstOrDefault(p => p.UserID == CurrentUser.UserID && p.ProductID == productID);
             if (item != null)
             {
                 Context.CartItem.Remove(item);
                 Context.SaveChanges();
+                Console.WriteLine("Товар успешно удален из корзины");
+                return true;
             }
+            Console.WriteLine($"Товара с ID {item.ProductID} нет в вашей корзине");
+            return false;
         }
 
         public static List<PickupPoint> GetPickupPoint()

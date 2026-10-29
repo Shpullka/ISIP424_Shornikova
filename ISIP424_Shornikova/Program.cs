@@ -16,7 +16,7 @@ namespace ISIP424_Shornikova
             bool exit = false;
             while (!exit)
             {
-                Console.WriteLine("Маркетплейс GMWOG||GG.MOW||WONGG");
+                Console.WriteLine("\nМаркетплейс GMWOG||GG.MOW||WONGG");
                 if (Core.CurrentUser == null)
                 {
                     Console.WriteLine("1. Войти");
@@ -47,8 +47,9 @@ namespace ISIP424_Shornikova
                     {
                         case "1": ProductsMenu(); break;
                         case "2": CartMenu(); break;
-                        case "3": HistoryMenu(); break;
+                        //case "3": HistoryMenu(); break;
                         case "4": Core.Logout(); break;
+                        default: Console.WriteLine("Неверная команда. Попробуйте снова."); break;
                     }
                 } 
             }
@@ -56,7 +57,7 @@ namespace ISIP424_Shornikova
 
         static void RegisterMenu()
         {
-            Console.WriteLine("2. Регистрация пользователя");
+            Console.WriteLine("\n2. Регистрация пользователя");
             Console.Write("Придумайте никнейм: ");
             string nick = Console.ReadLine();
             Console.Write("Придумайте пароль: ");
@@ -76,7 +77,7 @@ namespace ISIP424_Shornikova
         }
         static void LoginMenu()
         {
-            Console.WriteLine("1. Вход пользователя");
+            Console.WriteLine("\n1. Вход пользователя");
             Console.Write("Никнейм: ");
             string nick = Console.ReadLine();
             Console.Write("Пароль: ");
@@ -93,7 +94,7 @@ namespace ISIP424_Shornikova
         }
         static void ProductsMenu()
         {
-            Console.WriteLine("Список товаров");
+            Console.WriteLine("\nСписок товаров");
             var product = Core.GetProducts();
             if (product.Count == 0)
             {
@@ -115,7 +116,8 @@ namespace ISIP424_Shornikova
             }
             if (Core.CurrentUser == null)
             {
-                Console.WriteLine("\nДля добавления в корзину необходимо войти в аккаунт");
+                Console.WriteLine("Для добавления в корзину необходимо войти в аккаунт");
+                return;
             }
             Console.Write("\nВведите ID товара, чтобы добавить в корзину (или 0 для выхода): ");
             string input = Console.ReadLine();
@@ -129,14 +131,47 @@ namespace ISIP424_Shornikova
                 Console.WriteLine(result);
                 if (result == "Товар добавлен в корзину!")
                 {
-                    Console.WriteLine("Товар добавлен. Ваша корзина: ");
+                    Console.WriteLine("\nВаша корзина: ");
                     CartMenu();
-                }
-                else
-                {
-                    Console.WriteLine("Некорректный ввод. Введите число или 0 для выхода");
                 }
             }
         }
+        static void CartMenu()
+        {
+            var cartItems = Core.GetCartItems();
+            if (cartItems.Count == 0)
+            {
+                Console.WriteLine("Корзина пуста");
+                return;
+            }
+            decimal total = 0;
+            foreach (var item in cartItems)
+            {
+                var product = Core.Context.Product.Find(item.ProductID);
+                if (product != null)
+                {
+                    Console.WriteLine($"ID: {product.ProductID}\n" + $"Название: {product.Name}\n" + $"Цена: {product.Price} руб.\n");
+                    total += product.Price;
+                }
+            }
+            Console.WriteLine($"Итого: {total} руб.");
+            Console.WriteLine("\n1. Оформить заказ");
+            Console.WriteLine("2. Удалить товар");
+            Console.WriteLine("0. Назад");
+            Console.Write("Ваш выбор: ");
+            string choice = Console.ReadLine();
+        //    switch (choice)
+        //    {
+        //        case "1": CheckoutMenu(); break;
+        //        case "2":
+        //            {
+        //                Console.Write("Введите ID товара для удаления: ");
+        //                if (int.TryParse(Console.ReadLine(), out int id))
+        //                {
+
+        //                }
+        //            }
+        //}
+    }
     }
 }
