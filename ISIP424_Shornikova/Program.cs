@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -47,11 +48,11 @@ namespace ISIP424_Shornikova
                     {
                         case "1": ProductsMenu(); break;
                         case "2": CartMenu(); break;
-                        //case "3": HistoryMenu(); break;
+                        case "3": HistoryMenu(); break;
                         case "4": Core.Logout(); break;
                         default: Console.WriteLine("Неверная команда. Попробуйте снова."); break;
                     }
-                } 
+                }
             }
         }
 
@@ -82,7 +83,7 @@ namespace ISIP424_Shornikova
             string nick = Console.ReadLine();
             Console.Write("Пароль: ");
             string password = Console.ReadLine();
-            
+
             if (Core.Login(nick, password))
             {
                 Console.WriteLine("Успешный вход!");
@@ -150,28 +151,81 @@ namespace ISIP424_Shornikova
                 var product = Core.Context.Product.Find(item.ProductID);
                 if (product != null)
                 {
-                    Console.WriteLine($"ID: {product.ProductID}\n" + $"Название: {product.Name}\n" + $"Цена: {product.Price} руб.\n");
+                    Console.WriteLine($"\nID: {product.ProductID}\n" + $"Название: {product.Name}\n" + $"Цена: {product.Price} руб.");
                     total += product.Price;
                 }
             }
-            Console.WriteLine($"Итого: {total} руб.");
+            Console.WriteLine($"\nИтого: {total} руб.");
             Console.WriteLine("\n1. Оформить заказ");
             Console.WriteLine("2. Удалить товар");
             Console.WriteLine("0. Назад");
             Console.Write("Ваш выбор: ");
             string choice = Console.ReadLine();
-        //    switch (choice)
-        //    {
-        //        case "1": CheckoutMenu(); break;
-        //        case "2":
-        //            {
-        //                Console.Write("Введите ID товара для удаления: ");
-        //                if (int.TryParse(Console.ReadLine(), out int id))
-        //                {
+            switch (choice)
+            {
+                case "1": CheckoutMenu(); break;
+                case "2":
+                    {
+                        Console.Write("Введите ID товара для удаления: ");
+                        if (int.TryParse(Console.ReadLine(), out int id))
+                        {
+                            Core.RemoveFromCart(id);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Ошибка: Введите число (ID), а не буквы");
+                        }
+                    }
+                    break;
+                case "0": return;
+                default: Console.WriteLine("Неверная команда. Попробуйте снова."); break;
+            }
+        }
+        static void CheckoutMenu()
+        {
+            Console.WriteLine("Выберите ПВЗ");
+            var pvsList = Core.GetPickupPoint();
+            foreach (var pvs in pvsList)
+            {
+                Console.WriteLine($"\nID: {pvs.PickupPointID}\n" + $"Адрес: {pvs.Address}");
+            }
+            Console.Write("\nВведите ID ПВЗ: ");
+            if (int.TryParse(Console.ReadLine(), out int psvID))
+            {
+                List<int> selectedProductsID = new List<int>();
+                var cartItems = Core.GetCartItems();
+                foreach (var item in cartItems)
+                {
+                    selectedProductsID.Add(item.ProductID);
+                }
+                Console.WriteLine(Core.CheckoutSelected(selectedProductsID, psvID));
+            }
+            else
+            {
+                Console.WriteLine("Неверный формат ID");
+            }
+        }
+        static void HistoryMenu()
+        {
+            var orders = Core.GetOrderHistory();
+            if (orders.Count == 0)
+            {
+                Console.WriteLine("У вас еще нет заказов");
+                return;
+            }
 
-        //                }
-        //            }
-        //}
-    }
+            Console.WriteLine("История ваших заказов (от новых к старым)");
+            foreach (var order in orders)
+            {
+                string address = Core.GetPickupPointAddress(order.PickupPointID);
+                var products = Core.GetProductInOrder(order.OrderID);
+                Console.WriteLine($"Заказ {order.OrderID}\n" + $"Дата: {order.CreatedAt}\n" + $"ПВЗ: {address}\n");
+                Console.WriteLine("Товары:");
+                foreach (var product in products)
+                {
+                    Console.WriteLine($"- {product}");
+                }
+            }
+        }
     }
 }

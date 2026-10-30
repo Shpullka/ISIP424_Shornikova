@@ -10,7 +10,7 @@ namespace ISIP424_Shornikova
     {
         public static Shpulka_424Entities Context = new Shpulka_424Entities();
 
-        public static User CurrentUser = null; 
+        public static User CurrentUser = null;
         public static string RegisterUser(string nickname, string password1, string password2)
         {
             if (password1 != password2)
@@ -24,7 +24,7 @@ namespace ISIP424_Shornikova
 
             User newUser = new User
             {
-                Nickname = nickname, 
+                Nickname = nickname,
                 PasswordHash = password1
             };
             Context.User.Add(newUser);
@@ -79,18 +79,18 @@ namespace ISIP424_Shornikova
             return Context.CartItem.Where(p => p.UserID == CurrentUser.UserID).ToList();
         }
 
-        public static bool RemoveFromCart(int productID)
+        public static void RemoveFromCart(int productID)
         {
             var item = Context.CartItem.FirstOrDefault(p => p.UserID == CurrentUser.UserID && p.ProductID == productID);
             if (item != null)
             {
                 Context.CartItem.Remove(item);
                 Context.SaveChanges();
-                Console.WriteLine("Товар успешно удален из корзины");
-                return true;
             }
-            Console.WriteLine($"Товара с ID {item.ProductID} нет в вашей корзине");
-            return false;
+            else
+            {
+                Console.WriteLine($"Товара с ID {productID} нет в вашей корзине");
+            }
         }
 
         public static List<PickupPoint> GetPickupPoint()
